@@ -146,7 +146,7 @@ void Scheme::saveToFile(std::string filename) {
     for (int i = 0; i < this->belts.size(); i++) {
         for (int j = 0; j < this->belts[i]->items.size(); j++) {
             outputFile << this->belts[i]->items[j]->type;
-            outputFile << "+";
+            outputFile << "*";
             outputFile << std::to_string(this->belts[i]->items[j]->flow);
             if (j < this->belts[i]->items.size() - 1) {
                 outputFile << "+";
