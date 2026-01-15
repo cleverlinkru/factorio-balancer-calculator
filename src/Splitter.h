@@ -1,8 +1,13 @@
 #pragma once
 
 class Splitter {
-    Belt* leftInput;
-    Belt* rightInput;
-    Belt* leftOutput;
-    Belt* rightOutput;
+    public:
+        Belt* leftInput = nullptr;
+        Belt* rightInput = nullptr;
+        Belt* leftOutput = nullptr;
+        Belt* rightOutput = nullptr;
+        int inputPriority = 0;
+        int outputPriority = 0;
+
+        void printToConsole();
 };

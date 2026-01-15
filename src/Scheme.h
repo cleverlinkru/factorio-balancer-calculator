@@ -9,11 +9,15 @@
 
 class Scheme {
     public:
+        std::vector<Belt*> belts;
         std::vector<Belt*> inputBelts;
         std::vector<Belt*> outputBelts;
+        std::vector<Belt*> destOutputBelts;
+        std::vector<Belt*> innerBelts;
         std::vector<Splitter*> splitters;
-        int nextBeltIndex = 0;
+        int lastBeltIndex = 0;
 
-        void loadFromInputFile();
+        Belt* createBelt(int index = 0);
+        void loadFromInputFile(std::string filename);
         void printToConsole();
 };
