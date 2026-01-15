@@ -2,10 +2,12 @@
 #include <iostream>
 #include <fstream>
 #include <sstream>
+#include <filesystem>
 #include <vector>
 #include <string>
 #include "Belt.h"
 #include "Splitter.h"
+#include "Item.h"
 
 class Scheme {
     public:
@@ -18,7 +20,11 @@ class Scheme {
         int lastBeltIndex = 0;
 
         Belt* createBelt(int index = 0);
-        void loadFromInputFile(std::string filename);
+        void loadFromFile(std::string filename);
+        void newFile(std::string filename);
+        void saveToFile(std::string filename);
         void printToConsole();
         Belt* findBeltByIndex(int index);
+        Scheme* copy();
+        void calculate();
 };

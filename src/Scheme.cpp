@@ -15,7 +15,7 @@ Belt* Scheme::createBelt(int index) {
     return belt;
 }
 
-void Scheme::loadFromInputFile(std::string filename) {
+void Scheme::loadFromFile(std::string filename) {
     std::ifstream inputFile(filename);
 
     if (!inputFile.is_open()) {
@@ -114,6 +114,53 @@ void Scheme::loadFromInputFile(std::string filename) {
     }
 }
 
+void Scheme::newFile(std::string filename) {
+    std::filesystem::remove(filename);
+
+    std::ofstream outputFile(filename, std::ios::out);
+
+    if (!outputFile.is_open()) {
+        std::cerr << "Error: Could not open the file " << filename << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < this->belts.size(); i++) {
+        outputFile << std::to_string(this->belts[i]->index);
+        if (i < this->belts.size() - 1) {
+            outputFile << ",";
+        }
+    }
+    outputFile << std::endl;
+
+    outputFile.close();
+}
+
+void Scheme::saveToFile(std::string filename) {
+    std::ofstream outputFile(filename, std::ios::app);
+
+    if (!outputFile.is_open()) {
+        std::cerr << "Error: Could not open the file " << filename << std::endl;
+        return;
+    }
+
+    for (int i = 0; i < this->belts.size(); i++) {
+        for (int j = 0; j < this->belts[i]->items.size(); j++) {
+            outputFile << this->belts[i]->items[j]->type;
+            outputFile << "+";
+            outputFile << std::to_string(this->belts[i]->items[j]->flow);
+            if (j < this->belts[i]->items.size() - 1) {
+                outputFile << "+";
+            }
+        }
+        if (i < this->belts.size() - 1) {
+            outputFile << ",";
+        }
+    }
+    outputFile << std::endl;
+
+    outputFile.close();
+}
+
 void Scheme::printToConsole() {
     std::cout << "---inputBelts---" << std::endl;
     for (const auto b : this->inputBelts) {
@@ -151,4 +198,102 @@ Belt* Scheme::findBeltByIndex(int index) {
         }
     }
     return nullptr;
+}
+
+Scheme* Scheme::copy() {
+    Scheme* newScheme = new Scheme();
+    for (Belt* belt : this->inputBelts) {
+        Belt* newBelt = belt->copy();
+        newScheme->inputBelts.push_back(newBelt);
+        newScheme->belts.push_back(newBelt);
+    }
+    for (Belt* belt : this->outputBelts) {
+        Belt* newBelt = belt->copy();
+        newScheme->outputBelts.push_back(newBelt);
+        newScheme->belts.push_back(newBelt);
+    }
+    for (Belt* belt : this->destOutputBelts) {
+        Belt* newBelt = belt->copy();
+        newScheme->destOutputBelts.push_back(newBelt);
+    }
+    for (Belt* belt : this->innerBelts) {
+        Belt* newBelt = belt->copy();
+        newScheme->innerBelts.push_back(newBelt);
+        newScheme->belts.push_back(newBelt);
+    }
+    for (Splitter* splitter : this->splitters) {
+        Splitter* newSplitter = new Splitter();
+        if (splitter->leftInput) {
+            newSplitter->leftInput = newScheme->findBeltByIndex(splitter->leftInput->index);
+        }
+        if (splitter->rightInput) {
+            newSplitter->rightInput = newScheme->findBeltByIndex(splitter->rightInput->index);
+        }
+        if (splitter->leftOutput) {
+            newSplitter->leftOutput = newScheme->findBeltByIndex(splitter->leftOutput->index);
+        }
+        if (splitter->rightOutput) {
+            newSplitter->rightOutput = newScheme->findBeltByIndex(splitter->rightOutput->index);
+        }
+        newSplitter->inputPriority = splitter->inputPriority;
+        newSplitter->outputPriority = splitter->outputPriority;
+        newScheme->splitters.push_back(newSplitter);
+    }
+    newScheme->lastBeltIndex = this->lastBeltIndex;
+    return newScheme;
+}
+
+void Scheme::calculate() {
+    Scheme* newScheme = this->copy();
+
+    for (Splitter* splitter : this->splitters) {
+        std::vector<Item*> _inputItems;
+        if (splitter->leftInput) {
+            for (Item* beltItem : splitter->leftInput->items) {
+                _inputItems.push_back(beltItem->copy());
+            }
+        }
+        if (splitter->rightInput) {
+            for (Item* beltItem : splitter->rightInput->items) {
+                _inputItems.push_back(beltItem->copy());
+            }
+        }
+
+        std::vector<Item*> inputItems;
+        for (Item* beltItem : _inputItems) {
+            bool isFinded = false;
+            for (Item* inputItem : inputItems) {
+                if (beltItem->type == inputItem->type) {
+                    inputItem->flow += beltItem->flow;
+                    isFinded = true;
+                    break;
+                }
+            }
+            if (!isFinded) {
+                inputItems.push_back(beltItem->copy());
+            }
+        }
+
+        if (splitter->leftOutput && splitter->rightOutput) {
+            Belt* leftOutputBelt = newScheme->findBeltByIndex(splitter->leftOutput->index);
+            Belt* rightOutputBelt = newScheme->findBeltByIndex(splitter->rightOutput->index);
+            leftOutputBelt->items.clear();
+            rightOutputBelt->items.clear();
+            for (Item* inputItem : inputItems) {
+                inputItem->flow /= 2;
+                leftOutputBelt->items.push_back(inputItem->copy());
+                rightOutputBelt->items.push_back(inputItem->copy());
+            }
+        } else if (splitter->leftOutput && !splitter->rightOutput) {
+            Belt* leftOutputBelt = newScheme->findBeltByIndex(splitter->leftOutput->index);
+            leftOutputBelt->items.clear();
+            leftOutputBelt->items = inputItems;
+        } else if (!splitter->leftOutput && splitter->rightOutput) {
+            Belt* rightOutputBelt = newScheme->findBeltByIndex(splitter->rightOutput->index);
+            rightOutputBelt->items.clear();
+            rightOutputBelt->items = inputItems;
+        }
+    }
+
+    *this = *newScheme;
 }
