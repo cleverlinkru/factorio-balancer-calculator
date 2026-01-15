@@ -1,20 +1,20 @@
 #include "Splitter.h"
 
 void Splitter::printToConsole() {
+    std::cout << "leftInput" << std::endl;
     if (this->leftInput) {
-        std::cout << "leftInput" << std::endl;
         std::cout << this->leftInput->index << std::endl;
     }
+    std::cout << "rightInput" << std::endl;
     if (this->rightInput) {
-        std::cout << "rightInput" << std::endl;
         std::cout << this->rightInput->index << std::endl;
     }
+    std::cout << "leftOutput" << std::endl;
     if (this->leftOutput) {
-        std::cout << "leftOutput" << std::endl;
         std::cout << this->leftOutput->index << std::endl;
     }
+    std::cout << "rightOutput" << std::endl;
     if (this->rightOutput) {
-        std::cout << "rightOutput" << std::endl;
         std::cout << this->rightOutput->index << std::endl;
     }
     std::cout << "inputPriority" << std::endl;

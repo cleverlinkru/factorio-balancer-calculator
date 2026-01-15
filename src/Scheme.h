@@ -20,4 +20,5 @@ class Scheme {
         Belt* createBelt(int index = 0);
         void loadFromInputFile(std::string filename);
         void printToConsole();
+        Belt* findBeltByIndex(int index);
 };
